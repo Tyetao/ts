@@ -1,0 +1,33 @@
+{
+  "name": "ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "concurrently -n \"typescript,Nodemon\" -c \"cyan.bold,green.bold\" \"npm run build\" \"npm run nodemon\"",
+    "build": "tsc --watch",
+    "nodemon": "nodemon dist/server.js dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt-nodejs": "^0.0.3",
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "mongoose": "^4.13.9"
+  },
+  "devDependencies": {
+    "@types/bcrypt-nodejs": "^0.0.30",
+    "@types/body-parser": "^1.16.8",
+    "@types/mongoose": "^4.7.33",
+    "@types/morgan": "^1.7.35",
+    "@types/node": "^9.3.0",
+    "basic-auth": "^2.0.0",
+    "concurrently": "^3.5.1",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.14.11",
+    "on-headers": "^1.0.1"
+  }
+}
