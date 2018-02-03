@@ -1,4 +1,6 @@
 import * as envConfig from "../../config";
+import * as jwt from 'jwt-simple';
+import app from '../app';
 
 /**
  * 工具类
@@ -21,6 +23,18 @@ class Util {
     } else if (this.env === 'test') {
       return envConfig.test;
     }
+  }
+
+  getToken(id: object): string {
+    let expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    let token = jwt.encode({
+        iss: id, // Issuer，发行者
+        exp: expires, // Expiration time，过期时间
+        aud: 'jser' //Audience，观众
+      },
+      'jwtTokenSecret'
+    );
+    return token;
   }
 }
 

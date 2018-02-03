@@ -3,7 +3,8 @@ import * as bcrypt from "bcrypt-nodejs";
 
 const UserSchema = new mongoose.Schema({
   name: {type: String, unique: true},
-  password: String
+  password: String,
+  roles: Array
 }, { timestamps: true });
 
 UserSchema.pre("save", function save(next) {
