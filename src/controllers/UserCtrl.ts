@@ -2,6 +2,7 @@ import {Request, Response, NextFunction} from "express";
 import {UserModel} from "../models/User";
 import * as bcrypt from "bcrypt-nodejs";
 import {UtilCtrl} from "../lib/util";
+import * as mongoose from "mongoose";
 
 class User {
   constructor() {
@@ -62,46 +63,87 @@ class User {
    * @returns {name} 用户名
    */
   public signup(req: Request, res: Response, next: NextFunction): void {
-    console.log('请求了signup')
-    let name = req.body.name || '';
+    const reqBody = req.body;
+    const id = req.body.id;
+    const name = req.body.name || '';
     let password = req.body.password || '';
-    let roles = req.body.roles || [];
+    const roles = req.body.roles || '';
 
     if (name === '') {
       res.status(415).end('账号不能为空');
-      return;
     }
-
     if (typeof password === 'string') {
       if (password.length < 6 || password.length > 10) {
         res.status(415).end('密码长度需要在6~10');
-        return;
       }
     }
+    if (id) {
+      UserModel.findById({_id: id}, (err, user_id) => {
+        if (err) {
+          res.json({
+            error_code: "Y10001",
+            data: null,
+            msg: "此用户不存在"
+          })
+        }
+        if (user_id) {
+          bcrypt.genSalt(10, (err, salt) => {
+            if (err) { return next(err); }
+            bcrypt.hash(password, salt, undefined, (err: mongoose.Error, hash) => {
+              if (err) { return next(err); }
+              password = hash;
+              UserModel.update({_id: id}, {$set: {"roles": roles, "password": password}}, (err, data) => {
+                if (err) {
+                  console.log(err);
+                  return;
+                }
+                res.json({
+                  error_code: "Y10000",
+                  data: data,
+                  msg: "更新成功"
+                })
+              });
+            });
+          });
+        } else {
+          res.json({
+            error_code: "Y10001",
+            data: null,
+            msg: "此用户不存在"
+          })
+        }
+      })
+    } else {
 
-    let User = new UserModel({
-      name: name,
-      password: password,
-      roles: roles
-    });
+      UserModel.findOne({name: name}, (err, data) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
 
-    User.save((err, data) => {
-      if (err) {
-        return res.json({
-          "error_code": 'Y9999',
-          "data": null,
-          "msg": err.message
-        });
-      } else {
-        return res.json({
-          "error_code": 'Y10000',
-          "data": data["name"],
-          "msg": "请求成功"
-        });
-      }
-    });
+        if (data) {
+          res.json({
+            error_code: "Y10001",
+            data: null,
+            msg: data["name"] + "用户名已存在"
+          })
+        } else {
+          var _user = new UserModel(reqBody);
+          _user.save(function (err) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            res.json({
+              error_code: "Y10000",
+              data: "ok",
+              msg: "添加成功"
+            })
+          })
+        }
+      });
+    }
   }
-
 
   /**
    * 退出登录
@@ -151,8 +193,18 @@ class User {
     })
   }
 
+  /**
+   * 后台账号列表查询
+   * @param {e.Request} req
+   * @param {e.Response} res
+   */
   public usersList(req: Request, res: Response): void {
     UserModel.find((err, users) => {
+
+      if (err) {
+        return console.log(err);
+      }
+
       res.status(200).json(
         {
           "error_code": "Y10000",
@@ -163,6 +215,39 @@ class User {
     })
   }
 
+  /**
+   * 删除账号
+   * @param {e.Request} req
+   * @param {e.Response} res
+   */
+  public removeAccount(req: Request, res: Response) {
+    const id = req.query.id || '';
+    if (id) {
+      UserModel.remove({_id: id}, (err) => {
+        if (err) {
+          res.json({
+            "error_code": 'Y9999',
+            "data": null,
+            "msg": "删除失败"
+          })
+        }
+
+        res.status(200).json(
+          {
+            "error_code": "Y10000",
+            "data": null,
+            "msg": "删除成功"
+          }
+        );
+      })
+    } else {
+      res.json({
+        "error_code": 'Y9999',
+        "data": null,
+        "msg": "没有该账户"
+      })
+    }
+  }
 }
 
 export const UserCtrl = new User();

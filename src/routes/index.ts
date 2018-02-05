@@ -2,11 +2,9 @@ import {UserCtrl} from "../controllers/UserCtrl";
 import * as jwt from "jwt-simple";
 
 module.exports = (App) => {
-
   App.use((req, res, next) => {
     console.log('path:' + req.path);
-    console.log(req.headers);
-    if (req.path === "/login" || req.path === "/signup") {
+    if (req.path === "/login") {
       next();
     } else {
       if (req.method != "OPTIONS") {
@@ -43,4 +41,5 @@ module.exports = (App) => {
   App.get("/userInfo", UserCtrl.userInfo);
   App.get("/usersList", UserCtrl.usersList);
   App.post("/logout", UserCtrl.logout);
+  App.get("/removeAccount", UserCtrl.removeAccount);
 };
